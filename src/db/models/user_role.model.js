@@ -15,7 +15,6 @@ const UserRoleSchema = {
   userId: {
     field: 'user_id',
     type: DataTypes.UUID,
-    allowNull: false,
     references: {
       model: USER_TABLE,
       key: 'id_user',
@@ -26,7 +25,6 @@ const UserRoleSchema = {
   roleId: {
     field: 'role_id',
     type: DataTypes.UUID,
-    allowNull: false,
     references: {
       model: ROLE_TABLE,
       key: 'id_rol',
@@ -39,6 +37,23 @@ const UserRoleSchema = {
     type: DataTypes.STRING,
     allowNull: false,
   },
+  updatedBy: {
+    field: 'updated_by',
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+  createdAt: {
+    field: 'created_at',
+    type: DataTypes.DATE,
+    allowNull: false,
+    defaultValue: Sequelize.NOW,
+  },
+  updatedAt: {
+    field: 'updated_at',
+    type: DataTypes.DATE,
+    allowNull: true,
+    defaultValue: Sequelize.NOW,
+  },
 };
 
 class UserRole extends Model {
@@ -47,7 +62,7 @@ class UserRole extends Model {
       sequelize,
       modelName: 'UserRole',
       tableName: USER_ROLE_TABLE,
-      timestamps: true,
+      timestamps: false,
     };
   }
 }

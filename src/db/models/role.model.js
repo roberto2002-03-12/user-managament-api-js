@@ -19,6 +19,18 @@ const RoleSchema = {
     type: DataTypes.TEXT('medium'),
     allowNull: true,
   },
+  createdAt: {
+    field: 'created_at',
+    type: DataTypes.DATE,
+    allowNull: false,
+    defaultValue: Sequelize.NOW,
+  },
+  updatedAt: {
+    field: 'updated_at',
+    type: DataTypes.DATE,
+    allowNull: true,
+    defaultValue: Sequelize.NOW,
+  },
   /*
     you should add "createdBy" in case
     you want to create roles with credentials
