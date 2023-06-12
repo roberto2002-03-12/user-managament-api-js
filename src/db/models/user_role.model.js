@@ -1,6 +1,6 @@
 const { DataTypes, Model, Sequelize } = require('sequelize');
-const { USER_TABLE, UserSchema } = require('./user.model');
-const { ROLE_TABLE, RoleSchema } = require('./role.model');
+const { USER_TABLE } = require('./user.model');
+const { ROLE_TABLE } = require('./role.model');
 
 const USER_ROLE_TABLE = 'user_has_role';
 
@@ -18,7 +18,7 @@ const UserRoleSchema = {
     allowNull: false,
     references: {
       model: USER_TABLE,
-      key: UserSchema.idUser.field,
+      key: 'id_user',
     },
     onDelete: 'CASCADE',
     onUpdate: 'CASCADE',
@@ -29,7 +29,7 @@ const UserRoleSchema = {
     allowNull: false,
     references: {
       model: ROLE_TABLE,
-      key: RoleSchema.idRol.field,
+      key: 'id_rol',
     },
     onDelete: 'CASCADE',
     onUpdate: 'CASCADE',

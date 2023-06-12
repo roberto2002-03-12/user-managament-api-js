@@ -1,5 +1,4 @@
 const { Model, DataTypes, Sequelize } = require('sequelize');
-const { USER_ROLE_TABLE, UserRoleSchema } = require('./user_role.model');
 
 const USER_TABLE = 'user';
 
@@ -40,9 +39,9 @@ class User extends Model {
   static associate(model) {
     this.belongsToMany(model.Role, {
       as: 'role',
-      through: USER_ROLE_TABLE,
-      foreignKey: UserRoleSchema.userId.field,
-      otherKey: UserRoleSchema.roleId.field,
+      through: 'user_has_role',
+      foreignKey: 'user_id',
+      otherKey: 'role_id',
     });
   }
 
