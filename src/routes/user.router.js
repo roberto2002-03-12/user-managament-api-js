@@ -1,5 +1,7 @@
 const express = require('express');
 const passport = require('passport');
+const validationHandler = require('../middlewares/validator.handler');
+const { changePasswordSchema, changeStatusSchema } = require('../schemas/user.schema');
 const { checkRole } = require('../middlewares/auth.handler');
 const {
   updateUser, deleteUser, changePassword, getUsers,
@@ -10,6 +12,7 @@ const router = express.Router();
 router.patch(
   '/change-password',
   passport.authenticate('jwt', { session: false }),
+  validationHandler(changePasswordSchema, 'body'),
   async (req, res, next) => {
     try {
       const { sub } = req.user;
@@ -25,6 +28,7 @@ router.patch(
   '/update-desactivated-status/:id',
   passport.authenticate('jwt', { session: false }),
   checkRole('admin'),
+  validationHandler(changeStatusSchema, 'body'),
   async (req, res, next) => {
     try {
       const { id } = req.params;

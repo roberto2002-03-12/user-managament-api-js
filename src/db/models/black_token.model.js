@@ -17,6 +17,7 @@ const BlackTokenSchema = {
   token: {
     type: DataTypes.STRING,
     allowNull: false,
+    unique: true,
   },
   bannedTo: {
     type: DataTypes.STRING(75),

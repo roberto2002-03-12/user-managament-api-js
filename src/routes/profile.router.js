@@ -3,22 +3,10 @@ const passport = require('passport');
 const validationHandler = require('../middlewares/validator.handler');
 const { updateProfileSchema } = require('../schemas/profile.schema');
 const {
-  getProfiles, createProfile, updateProfile,
+  getProfiles, updateProfile,
 } = require('../services/profile.service');
 
 const router = express.Router();
-
-router.post(
-  '/',
-  async (req, res, next) => {
-    try {
-      const result = await createProfile(req.body);
-      res.status(201).json(result);
-    } catch (err) {
-      next(err);
-    }
-  },
-);
 
 router.get(
   '/',

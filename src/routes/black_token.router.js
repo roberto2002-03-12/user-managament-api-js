@@ -1,5 +1,7 @@
 const express = require('express');
 const passport = require('passport');
+const validationHandler = require('../middlewares/validator.handler');
+const { addBlackTokenSchema } = require('../schemas/token.schema');
 const { checkRole } = require('../middlewares/auth.handler');
 const {
   addBlackToken, getBlackTokens, deleteBlackToken,
@@ -21,14 +23,15 @@ router.get(
   },
 );
 
-router.post(
-  '/',
+router.get(
+  '/ban-to-user',
   passport.authenticate('jwt', { session: false }),
   checkRole('admin'),
+  validationHandler(addBlackTokenSchema, 'query'),
   async (req, res, next) => {
     try {
       const { sub } = req.user;
-      const result = await addBlackToken(req.body, sub);
+      const result = await addBlackToken(req.query, sub);
       res.status(201).json(result);
     } catch (err) {
       next(err);
