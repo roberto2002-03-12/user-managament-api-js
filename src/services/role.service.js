@@ -30,22 +30,15 @@ const updateRole = async (id, obj) => {
   return 'role updated';
 };
 
-const deleteRole = async (id) => {
-  const roleToDestroy = await getRoleById(id);
-
-  await roleToDestroy.destroy();
-
-  return 'role destroyed';
-};
-
-const addRoleToUser = async (idUser, idRole, idWhoAssigned) => {
-  const userWhoAssigned = await getUserById(idWhoAssigned);
-  await getUserById(idUser);
-  await getRoleById(idRole);
+const addRoleToUser = async (body) => {
+  const userWhoAssigned = await getUserById(body.idWhoAssigned);
+  // This method alredy has "not found" error, so you don't need to add it here.
+  await getUserById(body.userId);
+  await getRoleById(body.roleId);
 
   const roleAssigned = await models.UserRole.create({
-    userId: idUser,
-    roleId: idRole,
+    userId: body.userId,
+    roleId: body.roleId,
     assignedBy: userWhoAssigned.dataValues.email,
   });
 
@@ -65,7 +58,6 @@ module.exports = {
   getRoles,
   createRole,
   updateRole,
-  deleteRole,
   addRoleToUser,
   deleteRoleAssigned,
 };

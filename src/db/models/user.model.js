@@ -55,6 +55,11 @@ class User extends Model {
       foreignKey: 'user_id',
       otherKey: 'role_id',
     });
+
+    this.hasOne(model.Profile, {
+      as: 'profile',
+      foreignKey: 'user_id',
+    });
   }
 
   static config(sequelize) {

@@ -25,6 +25,7 @@ const ProfileSchema = {
   // in Peru we call it "DNI"
   dni: {
     allowNull: false,
+    unique: true,
     type: DataTypes.STRING(8),
   },
   phoneNumber: {

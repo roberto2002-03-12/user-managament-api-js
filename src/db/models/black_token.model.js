@@ -28,6 +28,7 @@ const BlackTokenSchema = {
   },
   createdAt: {
     field: 'created_at',
+    type: DataTypes.DATE,
     allowNull: false,
     defaultValue: Sequelize.NOW,
   },
