@@ -1,18 +1,19 @@
 const express = require('express');
-const {
-  getUserById, createUser, updateUser, deleteUser, getUsers,
-} = require('../services/user.service');
+const userRouter = require('./user.router');
+const roleRouter = require('./role.router');
+const profileRouter = require('./profile.router');
+const authRouter = require('./auth.router');
+const tokenRouter = require('./black_token.router');
 
-const router = express.Router();
+function routerApi(app) {
+  const router = express.Router();
+  app.use('/api/v1', router);
 
-router.post(
-  '/user',
-  async (req, res) => {
-    try {
-      const result = await createUser(req.body);
-      res.status(201).json(result);
-    } catch (err) {
-      console.error(err);
-    }
-  },
-);
+  router.use('/user', userRouter);
+  router.use('/role', roleRouter);
+  router.use('/profile', profileRouter);
+  router.use('/auth', authRouter);
+  router.use('/token', tokenRouter);
+}
+
+module.exports = routerApi;

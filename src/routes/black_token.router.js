@@ -2,33 +2,33 @@ const express = require('express');
 const passport = require('passport');
 const { checkRole } = require('../middlewares/auth.handler');
 const {
-  updateUser, deleteUser, changePassword, getUsers,
-} = require('../services/user.service');
+  addBlackToken, getBlackTokens, deleteBlackToken,
+} = require('../services/black_token.service');
 
 const router = express.Router();
 
-router.patch(
-  '/change-password',
-  passport.authenticate('jwt', { session: false }),
-  async (req, res, next) => {
-    try {
-      const { sub } = req.user;
-      const result = await changePassword(sub, req.body);
-      res.status(201).json(result);
-    } catch (err) {
-      next(err);
-    }
-  },
-);
-
-router.patch(
-  '/update-desactivated-status/:id',
+router.get(
+  '/',
   passport.authenticate('jwt', { session: false }),
   checkRole('admin'),
   async (req, res, next) => {
     try {
-      const { id } = req.params;
-      const result = await updateUser(id, req.body);
+      const result = await getBlackTokens();
+      res.status(200).json(result);
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+router.post(
+  '/',
+  passport.authenticate('jwt', { session: false }),
+  checkRole('admin'),
+  async (req, res, next) => {
+    try {
+      const { sub } = req.user;
+      const result = await addBlackToken(req.body, sub);
       res.status(201).json(result);
     } catch (err) {
       next(err);
@@ -36,7 +36,6 @@ router.patch(
   },
 );
 
-// use this if you want
 router.delete(
   '/:id',
   passport.authenticate('jwt', { session: false }),
@@ -44,20 +43,8 @@ router.delete(
   async (req, res, next) => {
     try {
       const { id } = req.params;
-      const result = await deleteUser(id);
+      const result = await deleteBlackToken(id);
       res.status(201).json(result);
-    } catch (err) {
-      next(err);
-    }
-  },
-);
-
-router.get(
-  '/',
-  async (req, res, next) => {
-    try {
-      const result = await getUsers();
-      res.status(200).json(result);
     } catch (err) {
       next(err);
     }
