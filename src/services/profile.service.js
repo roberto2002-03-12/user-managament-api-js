@@ -1,6 +1,8 @@
+require('dotenv').config();
 const boom = require('@hapi/boom');
 const bcrypt = require('bcrypt');
 const { models } = require('../libs/sequelize');
+const { awsS3Client } = require('../config/configS3');
 const sequelize = require('../libs/sequelize');
 const { getUserByEmail } = require('./user.service');
 
@@ -57,6 +59,16 @@ const createProfile = async (obj) => {
     return profile;
   } catch (err) {
     if (transaction) await transaction.rollback();
+    if (obj.photoName !== 'empty') {
+      try {
+        await awsS3Client.deleteObject({
+          Bucket: process.env.AWS_BUCKET_NAME,
+          Key: obj.photoName,
+        });
+      } catch (errS3) {
+        console.log(errS3);
+      }
+    }
     throw err;
   }
 };
@@ -71,6 +83,22 @@ const updateProfile = async (sub, obj) => {
       },
     }],
   });
+
+  if (obj.photoName !== 'empty') {
+    try {
+      await awsS3Client.deleteObject({
+        Bucket: process.env.AWS_BUCKET_NAME,
+        Key: profileToUpdate.dataValues.photoName,
+      });
+    } catch (err) {
+      throw boom.internal(err);
+    }
+  } else {
+    // eslint-disable-next-line no-param-reassign
+    delete obj.photoName;
+    // eslint-disable-next-line no-param-reassign
+    delete obj.photoUrl;
+  }
 
   await profileToUpdate.update(obj);
 

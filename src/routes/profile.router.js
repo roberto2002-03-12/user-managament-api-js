@@ -1,10 +1,14 @@
 const express = require('express');
 const passport = require('passport');
-const validationHandler = require('../middlewares/validator.handler');
+const boom = require('@hapi/boom');
+const upload = require('../middlewares/fileUpload.handler');
+// const validationHandler = require('../middlewares/validator.handler');
+const validationUpdateHandler = require('../helpers/validationRegister');
 const { updateProfileSchema } = require('../schemas/profile.schema');
 const {
   getProfiles, updateProfile,
 } = require('../services/profile.service');
+const { getName } = require('../helpers/getNameFromUrl');
 
 const router = express.Router();
 
@@ -23,12 +27,26 @@ router.get(
 router.put(
   '/update-profile',
   passport.authenticate('jwt', { session: false }),
-  validationHandler(updateProfileSchema, 'body'),
+  upload.single('photo'),
   async (req, res, next) => {
     try {
       const { sub } = req.user;
-      const result = await updateProfile(sub, req.body);
-      res.status(201).json(result);
+
+      let objToJson = JSON.stringify(req.body);
+      objToJson = JSON.parse(objToJson);
+
+      const resultVal = validationUpdateHandler(updateProfileSchema, objToJson);
+
+      if (resultVal === true) {
+        const file = req.file?.location || 'empty';
+        const fileName = getName(file);
+        objToJson.photoName = fileName;
+        objToJson.photoUrl = file;
+        const updateUser = await updateProfile(sub, objToJson);
+        res.status(201).json(updateUser);
+      } else {
+        throw boom.badRequest(resultVal);
+      }
     } catch (err) {
       next(err);
     }

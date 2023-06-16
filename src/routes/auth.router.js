@@ -1,11 +1,15 @@
 const express = require('express');
 const passport = require('passport');
+const boom = require('@hapi/boom');
+const fileUpload = require('../middlewares/fileUpload.handler');
 const validationHandler = require('../middlewares/validator.handler');
+const validationRegisterHandler = require('../helpers/validationRegister');
 const {
   changePasswordRecoverySchema, loginSchema, registerSchema, recoverySchema,
 } = require('../schemas/auth.schema');
 const { createProfile } = require('../services/profile.service');
 const { signToken, sendRecovery, changePassword } = require('../services/auth.service');
+const { getName } = require('../helpers/getNameFromUrl');
 
 const router = express.Router();
 
@@ -54,13 +58,24 @@ router.post(
 
 router.post(
   '/register',
-  validationHandler(registerSchema, 'body'), // this shouldn't be here
-  // ToDo add image upload
+  fileUpload.single('photo'),
   async (req, res, next) => {
     try {
-      // ToDo adapt to form-data
-      const result = await createProfile(req.body);
-      res.status(201).json(result);
+      let objToJson = JSON.stringify(req.body);
+      objToJson = JSON.parse(objToJson);
+
+      const resultVal = validationRegisterHandler(registerSchema, objToJson);
+
+      if (resultVal === true) {
+        const file = req.file?.location || 'empty';
+        const fileName = getName(file);
+        objToJson.photoName = fileName;
+        objToJson.photoUrl = file;
+        const newUser = await createProfile(objToJson);
+        res.status(201).json(newUser);
+      } else {
+        throw boom.badRequest(resultVal);
+      }
     } catch (err) {
       next(err);
     }
