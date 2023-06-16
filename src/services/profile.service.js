@@ -1,6 +1,8 @@
 require('dotenv').config();
 const boom = require('@hapi/boom');
 const bcrypt = require('bcrypt');
+const Sequelize = require('sequelize');
+const { Op } = require('sequelize');
 const { models } = require('../libs/sequelize');
 const { awsS3Client } = require('../config/configS3');
 const sequelize = require('../libs/sequelize');
@@ -14,8 +16,88 @@ const getProfileById = async (id) => {
   return profile;
 };
 
-const getProfiles = async () => {
-  const listProfiles = await models.Profile.findAll({ include: ['user'] });
+const getProfiles = async (query) => {
+  const options = {
+    include: [
+      {
+        model: models.User,
+        as: 'user',
+        attributes: {
+          exclude: ['password', 'recoveryToken', 'loggedToken'],
+        },
+        where: {},
+      },
+    ],
+    where: {},
+    limit: 20,
+    offset: 20,
+  };
+
+  const {
+    limit, offset, fullName,
+    startDate, endDate, sex, email,
+  } = query || {};
+
+  if (fullName) {
+    options.where = Sequelize.where(Sequelize.fn('concat', Sequelize.col('firstName'), ' ', Sequelize.col('lastName')), {
+      [Op.like]: `%${fullName}%`,
+    });
+  }
+
+  if (email) {
+    options.include[0].where = {
+      email: {
+        [Op.like]: `%${email}%`,
+      },
+    };
+  }
+
+  if (sex) {
+    options.where = Sequelize.and(options.where, { sex });
+  }
+
+  if (startDate && endDate) {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    options.include[0].where = Sequelize.and(
+      options.include[0].where,
+      {
+        createdAt: {
+          [Op.between]: [start, end],
+        },
+      },
+    );
+  }
+
+  if (startDate && endDate === undefined) {
+    const start = new Date(startDate);
+    options.include[0].where = Sequelize.and(
+      options.include[0].where,
+      {
+        createdAt: {
+          [Op.gte]: start,
+        },
+      },
+    );
+  }
+
+  if (endDate && startDate === undefined) {
+    const end = new Date(endDate);
+    options.include[0].where = Sequelize.and(
+      options.include[0].where,
+      {
+        createdAt: {
+          [Op.lte]: end,
+        },
+      },
+    );
+  }
+
+  if (limit) options.limit = parseInt(limit, 10);
+
+  if (offset) options.offset = parseInt(limit, 10);
+
+  const listProfiles = await models.Profile.findAll(options);
 
   return listProfiles;
 };

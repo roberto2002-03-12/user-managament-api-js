@@ -2,9 +2,11 @@ const express = require('express');
 const passport = require('passport');
 const boom = require('@hapi/boom');
 const upload = require('../middlewares/fileUpload.handler');
-// const validationHandler = require('../middlewares/validator.handler');
+const validationHandler = require('../middlewares/validator.handler');
 const validationUpdateHandler = require('../helpers/validationRegister');
-const { updateProfileSchema } = require('../schemas/profile.schema');
+const checkTokenBlack = require('../middlewares/token-valid.handler');
+const { checkRole } = require('../middlewares/auth.handler');
+const { updateProfileSchema, listProfilesSchema } = require('../schemas/profile.schema');
 const {
   getProfiles, updateProfile,
 } = require('../services/profile.service');
@@ -14,6 +16,10 @@ const router = express.Router();
 
 router.get(
   '/',
+  passport.authenticate('jwt', { session: false }),
+  validationHandler(listProfilesSchema, 'query'),
+  checkRole('admin'),
+  checkTokenBlack(),
   async (req, res, next) => {
     try {
       const result = await getProfiles();
