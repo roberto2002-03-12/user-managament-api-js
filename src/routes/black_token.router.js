@@ -23,15 +23,15 @@ router.get(
   },
 );
 
-router.get(
+router.post(
   '/ban-to-user',
   passport.authenticate('jwt', { session: false }),
   checkRole('admin'),
-  validationHandler(addBlackTokenSchema, 'query'),
+  validationHandler(addBlackTokenSchema, 'body'),
   async (req, res, next) => {
     try {
       const { sub } = req.user;
-      const result = await addBlackToken(req.query, sub);
+      const result = await addBlackToken(req.body, sub);
       res.status(201).json(result);
     } catch (err) {
       next(err);
