@@ -9,7 +9,9 @@ function logErrors(err, req, res, next) {
 // eslint-disable-next-line no-unused-vars
 function errorHandler(err, req, res, next) {
   res.status(500).json({
+    statusCode: 500,
     message: err.message,
+    errors: err.errors,
     stack: err.stack, // delete this line if you launch this to production
   });
 }
