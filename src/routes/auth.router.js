@@ -21,6 +21,7 @@ router.post(
     try {
       // req.user it's only aviable with an auth middleware.
       const result = await signToken(req.user);
+      console.log(req.user);
       res.status(200).json(result);
     } catch (err) {
       next(err);

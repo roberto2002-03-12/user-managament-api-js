@@ -32,8 +32,8 @@ router.patch(
   async (req, res, next) => {
     try {
       const { id } = req.params;
-      const result = await updateUser(id, req.body);
-      res.status(201).json(result);
+      await updateUser(id, req.body);
+      res.status(201).json('user status updated');
     } catch (err) {
       next(err);
     }

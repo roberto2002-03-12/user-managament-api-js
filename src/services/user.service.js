@@ -48,9 +48,12 @@ const getUsers = async () => {
 const updateUser = async (id, obj) => {
   const userToUpdate = await getUserById(id);
 
-  await userToUpdate.update(obj);
-
-  return 'user updated';
+  const user = await userToUpdate.update(obj);
+  delete user.dataValues.password;
+  for (let i = 0; i < user?.role.length; i += 1) {
+    delete user?.role[i]?.dataValues.idRol;
+  }
+  return user;
 };
 
 const deleteUser = async (id) => {
@@ -65,7 +68,7 @@ const changePassword = async (sub, { password }) => {
   const findUser = await getUserById(sub);
 
   if (findUser.dataValues.activated !== true) throw boom.unauthorized('account desactivated');
-  console.log(password);
+
   const hashPassword = await bcrypt.hash(password, 10);
 
   await findUser.update({

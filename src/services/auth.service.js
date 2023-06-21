@@ -93,9 +93,9 @@ const sendRecovery = async (email) => {
     text: `Use this token to change your password: ${token}`,
   };
 
-  const respuesta = await sendMail(emailInfo);
+  const result = await sendMail(emailInfo);
 
-  return respuesta;
+  return result;
 };
 
 const changePassword = async (token, newPassword) => {
