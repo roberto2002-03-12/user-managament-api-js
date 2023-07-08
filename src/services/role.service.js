@@ -1,4 +1,6 @@
 const boom = require('@hapi/boom');
+const { Sequelize } = require('sequelize');
+const { Op } = require('sequelize');
 const { models } = require('../libs/sequelize');
 const { getUserById } = require('./user.service');
 
@@ -30,15 +32,111 @@ const updateRole = async (id, obj) => {
   return 'role updated';
 };
 
-const addRoleToUser = async (body) => {
-  const userWhoAssigned = await getUserById(body.idWhoAssigned);
+const listOfRelations = async (query) => {
+  const options = {
+    where: {},
+    limit: 20,
+    offset: 0,
+  };
+
+  const {
+    roleName, userEmail, assignedBy, order,
+    limit, offset, dateStart, dateEnd,
+  } = query || {};
+
+  if (roleName) {
+    options.where = {
+      roleName,
+    };
+  }
+
+  if (userEmail) {
+    options.where = Sequelize.and(
+      options.where,
+      {
+        userEmail: {
+          [Op.like]: `%${userEmail}%`,
+        },
+      },
+    );
+  }
+
+  if (assignedBy) {
+    options.where = Sequelize.and(
+      options.where,
+      {
+        assignedBy: {
+          [Op.like]: `%${assignedBy}%`,
+        },
+      },
+    );
+  }
+
+  if (dateStart && dateEnd) {
+    const start = new Date(dateStart);
+    const end = new Date(dateEnd);
+    options.where = Sequelize.and(
+      options.where,
+      {
+        createdAt: {
+          [Op.between]: [start, end],
+        },
+      },
+    );
+  }
+
+  if (dateStart && !dateEnd) {
+    const start = new Date(dateStart);
+    options.where = Sequelize.and(
+      options.where,
+      {
+        createdAt: {
+          [Op.gte]: start,
+        },
+      },
+    );
+  }
+
+  if (dateEnd && !dateStart) {
+    const end = new Date(dateEnd);
+    options.where = Sequelize.and(
+      options.where,
+      {
+        createdAt: {
+          [Op.lte]: end,
+        },
+      },
+    );
+  }
+
+  if (order) {
+    options.order = [
+      [
+        'created_at',
+        order === 'asc' ? 'ASC' : 'DESC',
+      ],
+    ];
+  }
+
+  if (limit) options.limit = parseInt(limit, 10);
+  if (offset) options.offset = parseInt(offset, 10);
+
+  const userRoles = await models.UserRole.findAll(options);
+
+  return userRoles;
+};
+
+const addRoleToUser = async (body, sub) => {
+  const userWhoAssigned = await getUserById(sub);
   // This method alredy has "not found" error, so you don't need to add it here.
-  await getUserById(body.userId);
-  await getRoleById(body.roleId);
+  const user = await getUserById(body.userId);
+  const role = await getRoleById(body.roleId);
 
   const roleAssigned = await models.UserRole.create({
     userId: body.userId,
+    userEmail: user.dataValues.email,
     roleId: body.roleId,
+    roleName: role.dataValues.roleName,
     assignedBy: userWhoAssigned.dataValues.email,
   });
 
@@ -60,4 +158,5 @@ module.exports = {
   updateRole,
   addRoleToUser,
   deleteRoleAssigned,
+  listOfRelations,
 };

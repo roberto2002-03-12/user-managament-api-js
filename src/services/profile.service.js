@@ -3,8 +3,8 @@ const boom = require('@hapi/boom');
 const bcrypt = require('bcrypt');
 const Sequelize = require('sequelize');
 const { Op } = require('sequelize');
+const { deleteObjectsFromAWS } = require('../helpers/deleteAWSObject');
 const { models } = require('../libs/sequelize');
-const { awsS3Client } = require('../config/configS3');
 const sequelize = require('../libs/sequelize');
 const { getUserByEmail } = require('./user.service');
 
@@ -26,6 +26,7 @@ const getProfiles = async (query) => {
           exclude: ['password', 'recoveryToken', 'loggedToken'],
         },
         where: {},
+        include: ['role'],
       },
     ],
     where: {},
@@ -35,13 +36,16 @@ const getProfiles = async (query) => {
 
   const {
     limit, offset, fullName,
-    startDate, endDate, sex, email,
+    startDate, endDate, sex, email, order,
   } = query || {};
 
   if (fullName) {
-    options.where = Sequelize.where(Sequelize.fn('concat', Sequelize.col('firstName'), ' ', Sequelize.col('lastName')), {
-      [Op.like]: `%${fullName}%`,
-    });
+    options.where = Sequelize.where(
+      Sequelize.fn('concat', Sequelize.col('firstName'), ' ', Sequelize.col('lastName')),
+      {
+        [Op.like]: `%${fullName}%`,
+      },
+    );
   }
 
   if (email) {
@@ -54,6 +58,19 @@ const getProfiles = async (query) => {
 
   if (sex) {
     options.where = Sequelize.and(options.where, { sex });
+  }
+
+  if (order) {
+    options.order = [
+      [
+        {
+          model: models.User,
+          as: 'user',
+        },
+        'created_at',
+        order === 'asc' ? 'ASC' : 'DESC',
+      ],
+    ];
   }
 
   if (startDate && endDate) {
@@ -117,7 +134,7 @@ const createProfile = async (obj) => {
     const finalData = {
       ...obj,
       user: {
-        email: obj.user.email,
+        ...obj.user,
         password: hash,
         activated: 1,
         loggedToken: 'not authenticated yet',
@@ -143,10 +160,7 @@ const createProfile = async (obj) => {
     if (transaction) await transaction.rollback();
     if (obj.photoName !== 'empty') {
       try {
-        await awsS3Client.deleteObject({
-          Bucket: process.env.AWS_BUCKET_NAME,
-          Key: obj.photoName,
-        });
+        await deleteObjectsFromAWS([obj.photoName]);
       } catch (errS3) {
         console.log(errS3);
       }
@@ -168,10 +182,7 @@ const updateProfile = async (sub, obj) => {
 
   if (obj.photoName !== 'empty') {
     try {
-      await awsS3Client.deleteObject({
-        Bucket: process.env.AWS_BUCKET_NAME,
-        Key: profileToUpdate.dataValues.photoName,
-      });
+      await deleteObjectsFromAWS([profileToUpdate.dataValues.photoName]);
     } catch (err) {
       throw boom.internal(err);
     }

@@ -3,9 +3,10 @@ const passport = require('passport');
 const validationHandler = require('../middlewares/validator.handler');
 const checkTokenBlack = require('../middlewares/token-valid.handler');
 const { checkRole } = require('../middlewares/auth.handler');
-const { addRoleToSomeOneSchema } = require('../schemas/role.schema');
+const { addRoleToSomeOneSchema, listRolesAssignedSchema } = require('../schemas/role.schema');
 const {
   getRoles, createRole, addRoleToUser, deleteRoleAssigned,
+  listOfRelations,
 } = require('../services/role.service');
 
 const router = express.Router();
@@ -13,6 +14,8 @@ const router = express.Router();
 // use this only in dev, in production roles should be alredy created.
 router.post(
   '/',
+  passport.authenticate('jwt', { session: false }),
+  checkRole('admin'),
   async (req, res, next) => {
     try {
       const result = await createRole(req.body);
@@ -46,7 +49,8 @@ router.post(
   checkTokenBlack(),
   async (req, res, next) => {
     try {
-      const result = await addRoleToUser(req.body);
+      const { sub } = req.user;
+      const result = await addRoleToUser(req.body, sub);
       res.status(201).json(result);
     } catch (err) {
       next(err);
@@ -64,6 +68,22 @@ router.delete(
       const { id } = req.params;
       const result = await deleteRoleAssigned(id);
       res.status(201).json(result);
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+router.get(
+  '/user-relations/',
+  passport.authenticate('jwt', { session: false }),
+  checkRole('admin'),
+  checkTokenBlack(),
+  validationHandler(listRolesAssignedSchema, 'query'),
+  async (req, res, next) => {
+    try {
+      const result = await listOfRelations(req?.query);
+      res.status(200).json(result);
     } catch (err) {
       next(err);
     }

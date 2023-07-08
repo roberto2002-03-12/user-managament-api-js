@@ -4,9 +4,10 @@ const Joi = require('joi');
 const fullName = Joi.string().max(130);
 const limit = Joi.number().max(40);
 const offset = Joi.number().min(0);
-const startDate = Joi.string().max(24);
-const endDate = Joi.string().max(24);
-const email = Joi.string().email();
+const startDate = Joi.date();
+const endDate = Joi.date();
+const email = Joi.string();
+const order = Joi.string().valid('asc', 'desc');
 
 const firstName = Joi.string().max(65);
 const lastName = Joi.string().max(65);
@@ -38,6 +39,7 @@ const listProfilesSchema = Joi.object({
   endDate: endDate.optional(),
   email: email.optional(),
   sex: sex.optional(),
+  order: order.optional(),
 });
 
 module.exports = {

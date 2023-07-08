@@ -9,7 +9,6 @@ const {
 } = require('../schemas/auth.schema');
 const { createProfile } = require('../services/profile.service');
 const { signToken, sendRecovery, changePassword } = require('../services/auth.service');
-const { getName } = require('../helpers/getNameFromUrl');
 
 const router = express.Router();
 
@@ -64,13 +63,13 @@ router.post(
       let objToJson = JSON.stringify(req.body);
       objToJson = JSON.parse(objToJson);
 
+      if (!req.file) delete objToJson.photo;
+
       const resultVal = validationRegisterHandler(registerSchema, objToJson);
 
       if (resultVal === true) {
-        const file = req.file?.location || 'empty';
-        const fileName = getName(file);
-        objToJson.photoName = fileName;
-        objToJson.photoUrl = file;
+        objToJson.photoName = req.file?.key || 'empty';
+        objToJson.photoUrl = req.file?.location || 'empty';
         const newUser = await createProfile(objToJson);
         res.status(201).json(newUser);
       } else {
