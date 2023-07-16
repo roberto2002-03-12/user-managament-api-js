@@ -16,7 +16,7 @@ const phoneNumber = Joi.string().max(15);
 const photoName = Joi.string();
 const photoUrl = Joi.string();
 const birthDate = Joi.date();
-const sex = Joi.string().max(15);
+const sex = Joi.string().valid('male', 'female');
 const address = Joi.string().max(85);
 
 const updateProfileSchema = Joi.object({

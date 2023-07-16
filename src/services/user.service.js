@@ -65,22 +65,66 @@ const deleteUser = async (id) => {
   return 'user destroyed';
 };
 
-const changePassword = async (sub, { password }) => {
+const changePassword = async (sub, obj) => {
   const findUser = await getUserById(sub);
 
   if (findUser.dataValues.activated !== true) throw boom.unauthorized('account desactivated');
 
-  const hashPassword = await bcrypt.hash(password, 10);
+  /*
+  I could use simple conditional (conditional === value) ? "value" : "repeat"
+  but hashPassword does some process, so it's better to repeat code than do
+  unnecessary process that takes time.
+  */
 
-  await findUser.update({
-    password: hashPassword,
+  if (obj.email && obj.password) {
+    const hashPassword = await bcrypt.hash(obj.password, 10);
+
+    await findUser.update({
+      email: obj.email,
+      password: hashPassword,
+    });
+  } else if (obj.email) {
+    await findUser.update({
+      email: obj.email,
+    });
+  } else {
+    const hashPassword = await bcrypt.hash(obj.password, 10);
+
+    await findUser.update({
+      password: hashPassword,
+    });
+  }
+
+  return { message: 'user updated' };
+};
+
+// I could use the first version, but i don't want to mess other code part
+// so i'll just create another one.
+const getUserByIdV2 = async (sub) => {
+  const user = await models.User.findByPk(sub, {
+    include: [{
+      model: Role,
+      as: 'role',
+      attributes: {
+        exclude: ['idRol'],
+      },
+    },
+    {
+      model: Profile,
+      as: 'profile',
+    },
+    ],
+    attributes: {
+      exclude: ['loggedToken', 'recoveryToken'],
+    },
   });
 
-  return 'password changed';
+  return user;
 };
 
 module.exports = {
   getUserById,
+  getUserByIdV2,
   getUsers,
   updateUser,
   deleteUser,

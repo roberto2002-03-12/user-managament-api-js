@@ -58,7 +58,7 @@ const sendMail = async (infoMail) => {
       pass: config.passRecype,
     },
     tls: {
-      rejectUnauthorized: true,
+      rejectUnauthorized: false,
     },
   });
 

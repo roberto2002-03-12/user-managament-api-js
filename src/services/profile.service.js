@@ -177,6 +177,10 @@ const updateProfile = async (sub, obj) => {
       where: {
         idUser: sub,
       },
+      include: ['role'],
+      attributes: {
+        exclude: ['loggedToken', 'recoveryToken', 'password'],
+      },
     }],
   });
 
@@ -193,9 +197,23 @@ const updateProfile = async (sub, obj) => {
     delete obj.photoUrl;
   }
 
-  await profileToUpdate.update(obj);
+  const user = await profileToUpdate.update(obj);
 
-  return 'profile updated';
+  const userDataOnly = {
+    ...user.dataValues.user.dataValues,
+  };
+
+  delete user.dataValues.user;
+
+  const profileDataOnly = {
+    ...user.dataValues,
+  };
+
+  const updatedData = {
+    user: { ...userDataOnly, profile: profileDataOnly },
+  };
+
+  return updatedData;
 };
 
 const deleteProfile = async (id) => {

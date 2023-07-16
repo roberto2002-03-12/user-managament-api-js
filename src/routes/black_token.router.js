@@ -15,7 +15,7 @@ router.get(
   checkRole('admin'),
   async (req, res, next) => {
     try {
-      const result = await getBlackTokens();
+      const result = await getBlackTokens(req?.query);
       res.status(200).json(result);
     } catch (err) {
       next(err);

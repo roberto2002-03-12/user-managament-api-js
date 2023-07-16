@@ -3,14 +3,12 @@ const passport = require('passport');
 const validationHandler = require('../middlewares/validator.handler');
 const { changePasswordSchema, changeStatusSchema } = require('../schemas/user.schema');
 const { checkRole } = require('../middlewares/auth.handler');
-const {
-  updateUser, deleteUser, changePassword, getUsers,
-} = require('../services/user.service');
+const { updateUser, changePassword } = require('../services/user.service');
 
 const router = express.Router();
 
-router.patch(
-  '/change-password',
+router.put(
+  '/update-user',
   passport.authenticate('jwt', { session: false }),
   validationHandler(changePasswordSchema, 'body'),
   async (req, res, next) => {
@@ -41,6 +39,7 @@ router.patch(
 );
 
 // use this if you want
+/*
 router.delete(
   '/:id',
   passport.authenticate('jwt', { session: false }),
@@ -67,5 +66,6 @@ router.get(
     }
   },
 );
+*/
 
 module.exports = router;

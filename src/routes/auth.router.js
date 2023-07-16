@@ -14,7 +14,7 @@ const router = express.Router();
 
 router.post(
   '/login',
-  validationHandler(loginSchema, 'user'),
+  validationHandler(loginSchema, 'body'),
   passport.authenticate('local', { session: false }),
   async (req, res, next) => {
     try {
@@ -28,7 +28,7 @@ router.post(
 );
 
 router.post(
-  '/recovery',
+  '/recovery-password',
   validationHandler(recoverySchema, 'body'),
   async (req, res, next) => {
     try {
