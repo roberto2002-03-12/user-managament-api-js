@@ -98,33 +98,8 @@ const changePassword = async (sub, obj) => {
   return { message: 'user updated' };
 };
 
-// I could use the first version, but i don't want to mess other code part
-// so i'll just create another one.
-const getUserByIdV2 = async (sub) => {
-  const user = await models.User.findByPk(sub, {
-    include: [{
-      model: Role,
-      as: 'role',
-      attributes: {
-        exclude: ['idRol'],
-      },
-    },
-    {
-      model: Profile,
-      as: 'profile',
-    },
-    ],
-    attributes: {
-      exclude: ['loggedToken', 'recoveryToken'],
-    },
-  });
-
-  return user;
-};
-
 module.exports = {
   getUserById,
-  getUserByIdV2,
   getUsers,
   updateUser,
   deleteUser,
