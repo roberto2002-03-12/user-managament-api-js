@@ -75,27 +75,31 @@ const changePassword = async (sub, obj) => {
   but hashPassword does some process, so it's better to repeat code than do
   unnecessary process that takes time.
   */
-
+  let userUpdated;
   if (obj.email && obj.password) {
     const hashPassword = await bcrypt.hash(obj.password, 10);
 
-    await findUser.update({
+    userUpdated = await findUser.update({
       email: obj.email,
       password: hashPassword,
     });
   } else if (obj.email) {
-    await findUser.update({
+    userUpdated = await findUser.update({
       email: obj.email,
     });
   } else {
     const hashPassword = await bcrypt.hash(obj.password, 10);
 
-    await findUser.update({
+    userUpdated = await findUser.update({
       password: hashPassword,
     });
   }
 
-  return { message: 'user updated' };
+  delete userUpdated.dataValues.password;
+  delete userUpdated.dataValues.recoveryToken;
+  delete userUpdated.dataValues.loggedToken;
+
+  return userUpdated;
 };
 
 module.exports = {

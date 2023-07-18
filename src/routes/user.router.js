@@ -3,7 +3,7 @@ const passport = require('passport');
 const validationHandler = require('../middlewares/validator.handler');
 const { changePasswordSchema, changeStatusSchema } = require('../schemas/user.schema');
 const { checkRole } = require('../middlewares/auth.handler');
-const { updateUser, changePassword } = require('../services/user.service');
+const { updateUser, changePassword, getUserById } = require('../services/user.service');
 
 const router = express.Router();
 
@@ -32,6 +32,23 @@ router.patch(
       const { id } = req.params;
       const result = await updateUser(id, req.body);
       res.status(201).json(result);
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+router.get(
+  '/get-user',
+  passport.authenticate('jwt', { session: false }),
+  async (req, res, next) => {
+    try {
+      const { sub } = req.user;
+      const result = await getUserById(sub);
+      delete result.dataValues.password;
+      delete result.dataValues.loggedToken;
+      delete result.dataValues.recoveryToken;
+      res.status(200).json(result);
     } catch (err) {
       next(err);
     }
